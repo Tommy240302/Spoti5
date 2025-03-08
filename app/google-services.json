@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1094206998274",
+    "project_id": "spoti5-ca951",
+    "storage_bucket": "spoti5-ca951.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094206998274:android:7bf61f41105a599fcda41b",
+        "android_client_info": {
+          "package_name": "com.example.spoti5"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi54HXnqz6YPhK-8S4v9fsUt86Cz11e5s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
