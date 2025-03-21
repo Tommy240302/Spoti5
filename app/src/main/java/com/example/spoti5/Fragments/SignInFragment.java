@@ -165,4 +165,16 @@ public class SignInFragment extends Fragment {
         fragmentTransaction.replace(frameLayout.getId(), fragment);
         fragmentTransaction.commit();
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            Intent intent = new Intent(getActivity(), MainActivity.class);
+            startActivity(intent);
+            getActivity().finish();
+        }
+    }
+
+
+
 }

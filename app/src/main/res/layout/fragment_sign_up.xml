@@ -142,5 +142,36 @@
         app:layout_constraintStart_toStartOf="@+id/confirmPassword"
         app:layout_constraintTop_toBottomOf="@+id/confirmPassword" />
 
+    <LinearLayout
+        android:id="@+id/signUpWithGoogleBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button_google"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/signUpButton"
+        app:layout_constraintVertical_bias="0.882"
+        android:layout_marginTop="20dp"  >
+
+        <ImageView
+            android:id="@+id/googleIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/google" />
+
+        <TextView
+            android:id="@+id/googleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sign_up_with_google"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
