@@ -25,7 +25,11 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -52,6 +56,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation ("com.google.firebase:firebase-auth:latest_version")
     implementation("com.google.firebase:firebase-firestore")
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
 
 }
 java {

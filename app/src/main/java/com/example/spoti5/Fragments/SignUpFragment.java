@@ -18,17 +18,27 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.spoti5.Activities.MainActivity;
 import com.example.spoti5.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.internal.GoogleSignInOptionsExtensionParcelable;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -44,8 +54,11 @@ public class SignUpFragment extends Fragment {
     private EditText password;
     private EditText confirmPassword;
     private Button signUpButton;
+    private LinearLayout signUpWithGoogleBtn;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private GoogleSignInClient googleSignInClient;
+    private static final int RC_SIGN_IN = 100;
 
     @SuppressLint("WrongViewCast")
     @Override
@@ -62,10 +75,19 @@ public class SignUpFragment extends Fragment {
         password = view.findViewById(R.id.password);
         confirmPassword = view.findViewById(R.id.confirmPassword);
         signUpButton = view.findViewById(R.id.signUpButton);
+        signUpWithGoogleBtn = view.findViewById(R.id.signUpWithGoogleBtn);
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(getContext(), gso);
+
+
+
 
         return view;
     }
@@ -141,6 +163,69 @@ public class SignUpFragment extends Fragment {
                 signUpButton.setTextColor(ContextCompat.getColor(getContext(), R.color.transWhite));
             }
         });
+        signUpWithGoogleBtn.setOnClickListener(v -> signUpWithGoogle());
+
+        checkInputs();
+    }
+
+    private void signUpWithGoogle() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            try {
+                GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
+                if (account != null) {
+                    authenticateWithFirebase(account);
+                }
+            } catch (ApiException e) {
+                Toast.makeText(getContext(), "Đăng nhập Google thất bại!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void authenticateWithFirebase(GoogleSignInAccount account) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+        mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser user = mAuth.getCurrentUser();
+                saveUserInfo(user);
+                navigateToMainActivity();
+            } else {
+                Toast.makeText(getContext(), "Xác thực thất bại!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(getActivity(), MainActivity.class);
+        startActivity(intent);
+        getActivity().finish();
+    }
+
+    private void saveUserInfo(FirebaseUser user) {
+        if (user != null) {
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userName", user.getDisplayName());
+            userInfo.put("email", user.getEmail());
+
+            FirebaseFirestore.getInstance().collection("users")
+                    .document(user.getUid()).set(userInfo)
+                    .addOnSuccessListener(aVoid -> {
+                        if (getActivity() != null) {
+                            Toast.makeText(getActivity(), "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        if (getActivity() != null) {
+                            Toast.makeText(getActivity(), "Lỗi lưu thông tin!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+        }
     }
 
     private void signUpWithFirebase() {
