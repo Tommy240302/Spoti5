@@ -14,8 +14,4 @@
     <string name="forget_password">Forget Password?</string>
     <string name="don_t_worry_we_just_need_your_registered_email_address_and_it_s_done">Don\'t worry we just need your registered email address and it\'s done!</string>
     <string name="go_back">Go Back</string>
-    <string name="log_out">Log out</string>
-    <string name="sign_up_with_google">Sign up with Google</string>
-    <string name="sign_in_with_google">Sign in with Google</string>
-    <string name="default_web_client_id">1094206998274-srlahte35gbru01fdcvtuu16mgbqgp5t.apps.googleusercontent.com</string>
 </resources>
