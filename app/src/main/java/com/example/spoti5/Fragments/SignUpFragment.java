@@ -169,9 +169,14 @@ public class SignUpFragment extends Fragment {
     }
 
     private void signUpWithGoogle() {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        // Đăng xuất Google trước để hiện lại form chọn tài khoản
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        });
     }
+
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -179,32 +184,83 @@ public class SignUpFragment extends Fragment {
             try {
                 GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
                 if (account != null) {
-                    authenticateWithFirebase(account);
+                    checkIfUserExistsBeforeAuth(account); // Kiểm tra trước khi xác thực Firebase
                 }
             } catch (ApiException e) {
                 Toast.makeText(getContext(), "Đăng nhập Google thất bại!", Toast.LENGTH_SHORT).show();
             }
         }
     }
+    private void checkIfUserExistsBeforeAuth(GoogleSignInAccount account) {
+        String userEmail = account.getEmail();
+
+        FirebaseFirestore.getInstance().collection("users")
+                .whereEqualTo("email", userEmail)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        // Tài khoản đã tồn tại => Thông báo và không đăng ký
+                        Toast.makeText(getContext(), "Tài khoản Google này đã được đăng ký!", Toast.LENGTH_SHORT).show();
+                        googleSignInClient.signOut(); // Đăng xuất khỏi Google
+                    } else {
+                        // Tài khoản chưa tồn tại => Thực hiện xác thực Firebase
+                        authenticateWithFirebase(account);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi kiểm tra tài khoản!", Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
     private void authenticateWithFirebase(GoogleSignInAccount account) {
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser user = mAuth.getCurrentUser();
-                saveUserInfo(user);
-                navigateToMainActivity();
+
+                // Kiểm tra tài khoản Google có tồn tại trong Firestore chưa
+                checkIfUserExists(user);
             } else {
                 Toast.makeText(getContext(), "Xác thực thất bại!", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void navigateToMainActivity() {
-        Intent intent = new Intent(getActivity(), MainActivity.class);
-        startActivity(intent);
-        getActivity().finish();
+
+
+    private void checkIfUserExists(FirebaseUser user) {
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Tài khoản đã tồn tại => Đăng nhập thành công
+                        Toast.makeText(getContext(), "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                        navigateToMainActivity();
+                    } else {
+                        // Tài khoản chưa tồn tại => Tự động đăng ký, lưu vào Firestore
+                        saveUserInfo(user);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi kiểm tra tài khoản!", Toast.LENGTH_SHORT).show();
+                });
     }
+
+
+
+
+    private void navigateToMainActivity() {
+        if (getActivity() != null) {
+            Intent intent = new Intent(getActivity(), MainActivity.class);
+            startActivity(intent);
+            getActivity().finish();
+        }
+    }
+
 
     private void saveUserInfo(FirebaseUser user) {
         if (user != null) {
@@ -213,20 +269,19 @@ public class SignUpFragment extends Fragment {
             userInfo.put("email", user.getEmail());
 
             FirebaseFirestore.getInstance().collection("users")
-                    .document(user.getUid()).set(userInfo)
+                    .document(user.getUid())
+                    .set(userInfo)
                     .addOnSuccessListener(aVoid -> {
-                        if (getActivity() != null) {
-                            Toast.makeText(getActivity(), "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
-                        }
+                        Toast.makeText(getActivity(), "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                        navigateToMainActivity(); // Chuyển sang MainActivity sau khi đăng ký thành công
                     })
                     .addOnFailureListener(e -> {
-                        if (getActivity() != null) {
-                            Toast.makeText(getActivity(), "Lỗi lưu thông tin!", Toast.LENGTH_SHORT).show();
-                        }
+                        Toast.makeText(getActivity(), "Lỗi lưu thông tin!", Toast.LENGTH_SHORT).show();
                     });
-
         }
     }
+
+
 
     private void signUpWithFirebase() {
         if (email.getText().toString().matches("[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+")) {

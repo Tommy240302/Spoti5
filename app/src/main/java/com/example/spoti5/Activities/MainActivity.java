@@ -26,8 +26,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
 
         mViewPager = findViewById(R.id.view_pager);
         mBottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -45,13 +45,13 @@ public class MainActivity extends AppCompatActivity {
                 if (getSupportActionBar() != null) {
                     switch (position) {
                         case 0:
-                            getSupportActionBar().setTitle("Person");
+                            getSupportActionBar().setTitle("Trang chủ");
                             break;
                         case 1:
-                            getSupportActionBar().setTitle("Home");
+                            getSupportActionBar().setTitle("Tìm kiếm");
                             break;
                         case 2:
-                            getSupportActionBar().setTitle("Settings");
+                            getSupportActionBar().setTitle("Thư viện");
                             break;
                     }
                 }
@@ -60,13 +60,13 @@ public class MainActivity extends AppCompatActivity {
 
         mBottomNavigationView.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
-                case R.id.person:
+                case R.id.home:
                     mViewPager.setCurrentItem(0);
                     break;
-                case R.id.home:
+                case R.id.search:
                     mViewPager.setCurrentItem(1);
                     break;
-                case R.id.setting:
+                case R.id.library:
                     mViewPager.setCurrentItem(2);
                     break;
             }
@@ -78,17 +78,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.person:
-                        mViewPager.setCurrentItem(0);
-                        getSupportActionBar().setTitle("Person");
-                        return true;
                     case R.id.home:
-                        mViewPager.setCurrentItem(1);
-                        getSupportActionBar().setTitle("Home");
+                        mViewPager.setCurrentItem(0);
+                        //getSupportActionBar().setTitle("Trang chủ");
                         return true;
-                    case R.id.setting:
+                    case R.id.search:
+                        mViewPager.setCurrentItem(1);
+                        //getSupportActionBar().setTitle("Tìm kiếm");
+                        return true;
+                    case R.id.library:
                         mViewPager.setCurrentItem(2);
-                        getSupportActionBar().setTitle("Settings");
+                        //getSupportActionBar().setTitle("Thư viện");
                         return true;
                 }
                 return false;
@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Thiết lập tiêu đề ban đầu
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Person");
-        }
+//        if (getSupportActionBar() != null) {
+//            getSupportActionBar().setTitle("Trang chủ");
+//        }
     }
 }

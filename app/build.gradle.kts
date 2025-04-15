@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.cardview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -57,7 +58,12 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth:latest_version")
     implementation("com.google.firebase:firebase-firestore")
     implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("com.google.android.material:material:1.11.0")
 
+    implementation ("com.android.volley:volley:1.2.1") // Cho network requests
+    implementation ("com.github.bumptech.glide:glide:4.12.0") // Hiển thị ảnh
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
+    implementation ("com.google.android.exoplayer:exoplayer:2.18.1") // Phát nhạc
 }
 java {
     toolchain {
