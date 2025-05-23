@@ -1,5 +1,6 @@
 package com.example.spoti5.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,7 @@ import com.example.spoti5.R;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,6 +68,20 @@ public class SongListFragment extends Fragment {
             requireActivity().findViewById(R.id.home_main_layout).setVisibility(View.VISIBLE);
             requireActivity().findViewById(R.id.home_inner_container).setVisibility(View.GONE);
         });
+        lvSongs.setOnItemClickListener((parent, v, position, id) -> {
+            SongModel selectedSong = songList.get(position);
+
+            Intent intent = new Intent(requireContext(), PlayActivity.class);
+
+            // Truyền vị trí bài hát hiện tại
+            intent.putExtra("position", position);
+
+            // Truyền danh sách bài hát (bạn cần đảm bảo SongModel implements Serializable)
+            intent.putExtra("songList", new ArrayList<>(songList));
+
+            requireContext().startActivity(intent);
+        });
+
 
 
         return view;

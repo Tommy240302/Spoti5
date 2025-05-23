@@ -1,6 +1,8 @@
 package com.example.spoti5.Models;
 
-public class SongModel {
+import java.io.Serializable;
+
+public class SongModel implements Serializable {
     private String id;
 
     private String name;
