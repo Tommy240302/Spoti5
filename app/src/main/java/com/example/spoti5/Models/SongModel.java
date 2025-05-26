@@ -87,12 +87,12 @@ public class SongModel implements Serializable {
         this.name = name;
     }
 
-    public int getDuration() {
-        return duration;
-    }
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+    public int getDuration() {
+        return duration;
     }
 
     public String getArtistId() {
