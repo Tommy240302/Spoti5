@@ -43,6 +43,8 @@ public class SongModel implements Serializable {
 
     private boolean audioDownloadAllowed;
 
+    private boolean isFavorite;
+
     // Constructor, getters and setters
 
     public SongModel() {
@@ -229,5 +231,13 @@ public class SongModel implements Serializable {
 
     public void setAudioDownloadAllowed(boolean audioDownloadAllowed) {
         this.audioDownloadAllowed = audioDownloadAllowed;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
     }
 }

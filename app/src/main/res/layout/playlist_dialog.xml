@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="16dp"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <Button
+        android:id="@+id/btnCreateNewList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="+ Tạo danh sách mới"
+        android:layout_marginTop="8dp" />
+    <ListView
+        android:id="@+id/lvFavoriteLists"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp" />
+
+
+</LinearLayout>

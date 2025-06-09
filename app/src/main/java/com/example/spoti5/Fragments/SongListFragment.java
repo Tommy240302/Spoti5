@@ -2,11 +2,13 @@ package com.example.spoti5.Fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import androidx.fragment.app.Fragment;
@@ -60,7 +62,7 @@ public class SongListFragment extends Fragment {
 
         fetchSongs(albumId);
 
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
+        ImageView btnBack = view.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> {
             // Quay lại fragment trước đó
             requireActivity().getSupportFragmentManager().popBackStack();
@@ -71,7 +73,7 @@ public class SongListFragment extends Fragment {
         });
         lvSongs.setOnItemClickListener((parent, v, position, id) -> {
             SongModel selectedSong = songList.get(position);
-
+            System.out.println("Bài hát được chọn: " + selectedSong);
             Intent intent = new Intent(requireContext(), PlayActivity.class);
 
             // Truyền vị trí bài hát hiện tại
@@ -79,6 +81,8 @@ public class SongListFragment extends Fragment {
 
             // Truyền danh sách bài hát (bạn cần đảm bảo SongModel implements Serializable)
             intent.putExtra("songList", new ArrayList<>(songList));
+
+            Log.d("PlayIntent", "Opening PlayActivity with song: " + selectedSong.getName());
 
             requireContext().startActivity(intent);
         });

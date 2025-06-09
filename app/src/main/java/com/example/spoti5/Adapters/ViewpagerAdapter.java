@@ -6,7 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.example.spoti5.Fragments.HomeFragment;
-import com.example.spoti5.Fragments.HomeFragment2;
+import com.example.spoti5.Fragments.SearchFragment;
 import com.example.spoti5.Fragments.SettingsFragment;
 
 public class ViewpagerAdapter extends FragmentStateAdapter {
@@ -26,7 +26,7 @@ public class ViewpagerAdapter extends FragmentStateAdapter {
             case 0:
                 return new HomeFragment();
             case 1:
-                return new HomeFragment2();
+                return new SearchFragment();
             case 2:
                 return new SettingsFragment();
             default:

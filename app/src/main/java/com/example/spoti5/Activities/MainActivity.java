@@ -6,14 +6,11 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.spoti5.Adapters.ViewpagerAdapter;
-import com.example.spoti5.Fragments.HomeFragment;
-import com.example.spoti5.Fragments.HomeFragment2;
 import com.example.spoti5.R;
+import com.example.spoti5.SQLite.PlaylistDAO;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,9 +22,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Toolbar toolbar = findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
 
         mViewPager = findViewById(R.id.view_pager);
         mBottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -94,10 +88,5 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-
-        // Thiết lập tiêu đề ban đầu
-//        if (getSupportActionBar() != null) {
-//            getSupportActionBar().setTitle("Trang chủ");
-//        }
     }
 }
