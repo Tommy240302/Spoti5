@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="?android:colorBackground"
     android:orientation="vertical"
     android:padding="10dp"
     tools:context=".Fragments.SettingsFragment">
@@ -15,14 +15,17 @@
         android:layout_marginTop="16dp"
         android:text="Thêm danh sách phát"
         android:textColor="@android:color/white"
-        android:backgroundTint="#1DB954" />
+        android:backgroundTint="@color/colorText" />
+
 
     <!-- Danh sách phát -->
+
+    <!-- Chuyển đổi Dark/Light Mode -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="10dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/layoutPlaylistContainer"
@@ -31,6 +34,31 @@
             android:orientation="vertical" />
     </ScrollView>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Chế độ tối"
+            android:textColor="@color/colorText"
+            android:textSize="16sp"/>
+
+        <Switch
+            android:id="@+id/switch_dark_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dark Mode"
+            android:textColor="@color/colorText"
+            android:layout_gravity="center_horizontal"
+            />
+
+    </LinearLayout>
 
     <!-- Đăng xuất -->
     <Button
@@ -42,5 +70,5 @@
         android:layout_marginBottom="30dp"
         android:text="@string/log_out"
         android:textColor="@android:color/white"
-        android:backgroundTint="#1DB954" />
+        android:backgroundTint="@color/colorText" />
 </LinearLayout>

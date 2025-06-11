@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +21,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -51,8 +54,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        int nightMode = prefs.getInt("night_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        AppCompatDelegate.setDefaultNightMode(nightMode);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         mViewPager = findViewById(R.id.view_pager);
         mBottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -185,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         LocalBroadcastManager.getInstance(this).registerReceiver(miniPlayerReceiver, new IntentFilter("UPDATE_MINI_PLAYER"));
+
 
     }
 

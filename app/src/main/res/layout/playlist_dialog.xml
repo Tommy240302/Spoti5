@@ -9,7 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="+ Tạo danh sách mới"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/colorText"/>
     <ListView
         android:id="@+id/lvFavoriteLists"
         android:layout_width="match_parent"

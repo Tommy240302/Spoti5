@@ -2,8 +2,10 @@ package com.example.spoti5.Fragments;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,11 +15,13 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 import com.example.spoti5.Activities.RegisterActivity;
@@ -41,6 +45,27 @@ public class SettingsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
+
+        Switch darkModeSwitch = view.findViewById(R.id.switch_dark_mode);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        int currentMode = prefs.getInt("night_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+
+        // Set trạng thái Switch ban đầu
+        darkModeSwitch.setChecked(currentMode == AppCompatDelegate.MODE_NIGHT_YES);
+
+        darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            int mode = isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO;
+            AppCompatDelegate.setDefaultNightMode(mode);
+
+            // Lưu chế độ người dùng chọn
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("night_mode", mode);
+            editor.apply();
+
+            // Cập nhật lại toàn bộ activity để áp dụng theme mới
+            requireActivity().recreate();
+        });
+
 
         songDAO = new SongDAO(getContext());
 

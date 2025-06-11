@@ -5,6 +5,7 @@
     android:id="@+id/home_root_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:colorBackground"
     tools:context=".Fragments.HomeFragment">
 
     <!-- Layout gốc của Home -->
@@ -32,10 +33,10 @@
             android:id="@+id/continueListening"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
             android:text="Tiếp tục nghe nhạc"
-            android:textColor="@color/white"
-            android:textSize="25dp"
-            android:layout_marginTop="30dp"/>
+            android:textColor="@color/colorText"
+            android:textSize="25dp" />
 
         <GridView
             android:id="@+id/gvCollectionSongs"

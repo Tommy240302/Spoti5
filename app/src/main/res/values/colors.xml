@@ -21,4 +21,5 @@
     <color name="yellow">#F6DC43</color>
     <color name="blue_light">#44D7DD</color>
     <color name="main">#06A0B5 </color>
+    <color name="colorText">#06A0B5</color>
 </resources>

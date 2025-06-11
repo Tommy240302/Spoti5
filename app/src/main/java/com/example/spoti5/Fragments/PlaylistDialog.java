@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class PlaylistDialog {
+public class    PlaylistDialog {
 
     public interface OnPlaylistsSelectedListener {
         void onPlaylistsSelected(Set<Integer> selectedPlaylistIds, Set<Integer> initialSelectedPlaylistIds);

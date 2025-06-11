@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/editText"/>
-            <corners
-                android:radius="30dp"/>
-        </shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <solid android:color="@color/white" />
+
+    <stroke
+        android:width="2dp"
+        android:color="@color/black" /> <!-- Hoặc @color/gray nếu muốn nhẹ hơn -->
+
+    <corners android:radius="10dp" /> <!-- Bo tròn góc -->
+</shape>
