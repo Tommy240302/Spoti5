@@ -1,42 +1,52 @@
 package com.example.spoti5.Fragments;
 
-import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
+import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
-import com.example.spoti5.Models.SongModel;
-import com.example.spoti5.R;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.io.IOException;
+import com.bumptech.glide.Glide;
+import com.example.spoti5.Activities.MainActivity;
+import com.example.spoti5.R;
+import com.example.spoti5.Models.SongModel;
+
 import java.util.ArrayList;
 
 public class PlayActivity extends AppCompatActivity {
 
-    ImageView imgAlbum, btnBack;
-    TextView tvTitle, tvArtist, totalTime, currentTime;
-    SeekBar seekBar;
-    ImageButton btnPlay, btnNext, btnPrev;
+    private ImageView imgAlbum;
+    private TextView tvTitle, tvArtist, totalTime, currentTime;
+    private ImageView btnPlay, btnNext, btnPrev, btnBack;
+    private SeekBar seekBar;
+    private MusicService musicService;
+    private boolean isBound = false;
 
-    static MediaPlayer mediaPlayer;
-    static ArrayList<SongModel> songList;
-    static int position = 0;
+    private Thread updateSeekBar;
 
-    Thread updateSeekBar;
 
+    private ArrayList<SongModel> songList;
+    private int position;
+
+    private Handler handler = new Handler();
+    private Runnable updateRunnable;
+
+
+
+    @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_play);
 
@@ -51,42 +61,35 @@ public class PlayActivity extends AppCompatActivity {
         totalTime = findViewById(R.id.totalTime);
         currentTime = findViewById(R.id.currentTime);
 
-        // Lấy dữ liệu từ Intent
         position = getIntent().getIntExtra("position", 0);
         songList = (ArrayList<SongModel>) getIntent().getSerializableExtra("songList");
 
-        System.out.println("vị trí: " + position);
+        if (songList == null || songList.isEmpty()) {
+            Log.e("PlayActivity", "Dữ liệu truyền vào bị null hoặc rỗng");
+            finish(); // hoặc hiển thị dialog lỗi
+            return;
+        }
+        if (position < 0 || position >= songList.size()) {
+            Log.e("PlayActivity", "Vị trí không hợp lệ: " + position);
+            finish();
+            return;
+        }
         playSong(position);
 
-//        btnPlay.setOnClickListener(v -> {
-//            if (mediaPlayer.isPlaying()) {
-//                mediaPlayer.pause();
-//                btnPlay.setImageResource(R.drawable.play_icon);
-//            } else {
-//                mediaPlayer.start();
-//                btnPlay.setImageResource(R.drawable.pause_icon);
-//            }
-//        });
-        btnBack.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-        });
+        Intent serviceIntent = new Intent(this, MusicService.class);
+        ContextCompat.startForegroundService(this, serviceIntent);
+        bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+
 
         btnPlay.setOnClickListener(v -> {
-            if (mediaPlayer != null) {
-                try {
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.pause();
-                        btnPlay.setImageResource(R.drawable.play_icon);
-                    } else {
-                        mediaPlayer.start();
-                        btnPlay.setImageResource(R.drawable.pause_icon);
-                        startSeekBarUpdate();
-                    }
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                    resetMediaPlayer();
-                    playSong(position); // Tự động phát lại nếu có lỗi
+            if (musicService != null) {
+                if (musicService.isPlaying()) {
+                    musicService.pause();
+                    btnPlay.setImageResource(R.drawable.play_icon);
+                } else {
+                    musicService.play();
+                    btnPlay.setImageResource(R.drawable.pause_icon);
+                    startSeekBarUpdate();
                 }
             }
         });
@@ -95,126 +98,95 @@ public class PlayActivity extends AppCompatActivity {
             position = (position + 1) % songList.size();
             playSong(position);
         });
-
         btnPrev.setOnClickListener(v -> {
-            position = (position - 1 < 0) ? songList.size() - 1 : position - 1;
+            position = (position - 1 + songList.size()) % songList.size();
             playSong(position);
+        });
+        btnBack.setOnClickListener(v -> {
+            finish();
+            overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) mediaPlayer.seekTo(progress);
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser && MusicService.mediaPlayer != null) {
+                    MusicService.mediaPlayer.seekTo(progress);
+                }
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+
+        updateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (MusicService.mediaPlayer != null && MusicService.mediaPlayer.isPlaying()) {
+                    int currentPos = MusicService.mediaPlayer.getCurrentPosition();
+                    int duration = MusicService.mediaPlayer.getDuration();
+
+                    seekBar.setMax(duration);
+                    seekBar.setProgress(currentPos);
+
+                    currentTime.setText(formatTime(currentPos));
+                    totalTime.setText(formatTime(duration));
+                }
+                handler.postDelayed(this, 500); // cập nhật mỗi 0.5 giây
+            }
+        };
+        handler.post(updateRunnable);
+
+
     }
 
     private void playSong(int pos) {
         SongModel song = songList.get(pos);
-
         tvTitle.setText(song.getName());
         tvArtist.setText(song.getArtistName());
+        Glide.with(this).load(song.getImage()).into(imgAlbum);
 
-        Glide.with(this)
-                .load(song.getImage())
-                .placeholder(R.drawable.placeholder_image)
-                .error(R.drawable.error_image)
-                .into(imgAlbum);
-
-        // Xử lý MediaPlayer an toàn
-        try {
-            // Giải phóng MediaPlayer cũ nếu tồn tại
-            if (mediaPlayer != null) {
-                try {
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.stop();
-                    }
-                    mediaPlayer.release();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                }
-                mediaPlayer = null;
-            }
-
-            // Kiểm tra URL hợp lệ
-            String url = song.getAudioUrl();
-            if (url == null || url.isEmpty()) {
-                Toast.makeText(this, "Link bài hát không hợp lệ", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(url);
-
-            // Sử dụng prepareAsync để tránh block UI thread
-            mediaPlayer.prepareAsync();
-
-            mediaPlayer.setOnPreparedListener(mp -> {
-                // Cập nhật UI khi đã prepared
-                int duration = mp.getDuration();
-                updateSongDuration(duration);
-                seekBar.setMax(duration);
+        if (musicService != null) {
+            musicService.playSong(song.getAudioUrl());
+            musicService.setOnPreparedListener(mp -> {
+                seekBar.setMax(mp.getDuration());
                 mp.start();
-                btnPlay.setImageResource(R.drawable.pause_icon);
                 startSeekBarUpdate();
+                btnPlay.setImageResource(R.drawable.pause_icon);
+                MainActivity.currentSong = song;
+                Intent intent = new Intent("UPDATE_MINI_PLAYER");
+                intent.putExtra("title", song.getName());
+                intent.putExtra("artist", song.getArtistName());
+                intent.putExtra("imageUrl", song.getImage());
+                intent.putExtra("song", song); // rất quan trọng để MainActivity nhận đúng
+
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+                Log.d("MiniPlayer", "Broadcast đã gửi: " + song.getName() + " - " + song.getArtistName() + " - " + song.getImage());
+
             });
-
-            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Lỗi phát nhạc", Toast.LENGTH_SHORT).show());
-                resetMediaPlayer();
-                return true;
-            });
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Không thể phát bài hát", Toast.LENGTH_SHORT).show();
-            resetMediaPlayer();
-        }
-    }
-
-    private void resetMediaPlayer() {
-        if (mediaPlayer != null) {
-            try {
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.stop();
-                }
-                mediaPlayer.release();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            } finally {
-                mediaPlayer = null;
-            }
         }
 
-        if (updateSeekBar != null) {
-            updateSeekBar.interrupt();
-            updateSeekBar = null;
-        }
+
     }
 
     private void startSeekBarUpdate() {
-        // Dừng thread cũ nếu tồn tại
-        if (updateSeekBar != null) {
-            updateSeekBar.interrupt();
+        if (updateSeekBar != null && updateSeekBar.isAlive()) {
+            updateSeekBar.interrupt();  // Dừng thread cũ nếu có
         }
 
         updateSeekBar = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    Thread.sleep(200);
-                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                        final int currentPosition = mediaPlayer.getCurrentPosition();
+                    Thread.sleep(500);  // Cập nhật mỗi 0.5s
+                    if (musicService != null && musicService.isPlaying()) {
+                        int currentPosition = musicService.getCurrentPosition();
                         runOnUiThread(() -> {
                             seekBar.setProgress(currentPosition);
                             currentTime.setText(formatTime(currentPosition));
                         });
-
                     }
-                } catch (InterruptedException | IllegalStateException e) {
-                    Thread.currentThread().interrupt();
+                } catch (InterruptedException e) {
                     break;
                 }
             }
@@ -222,17 +194,6 @@ public class PlayActivity extends AppCompatActivity {
         updateSeekBar.start();
     }
 
-    private void updateSongDuration(int durationMs) {
-        runOnUiThread(() -> {
-            if (durationMs <= 0) {
-                totalTime.setText("00:00");
-            } else {
-                int minutes = (durationMs / 1000) / 60;
-                int seconds = (durationMs / 1000) % 60;
-                totalTime.setText(String.format("%02d:%02d", minutes, seconds));
-            }
-        });
-    }
 
     private String formatTime(int millis) {
         int minutes = (millis / 1000) / 60;
@@ -240,104 +201,44 @@ public class PlayActivity extends AppCompatActivity {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-        }
-    }
 
+    private void sendActionToService(String action) {
+        Intent intent = new Intent(this, MusicService.class);
+        intent.setAction(action);
+        ContextCompat.startForegroundService(this, intent);
+    }
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
+            musicService = binder.getService();
+            isBound = true;
+            playSong(position); // bắt đầu phát luôn sau khi kết nối
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
     @Override
     protected void onDestroy() {
-        resetMediaPlayer();
+        if (isBound) {
+            unbindService(serviceConnection);
+            isBound = false;
+        }
+        if (updateSeekBar != null) updateSeekBar.interrupt();
         super.onDestroy();
-    }
-//    private void playSong(int pos) {
-//        SongModel song = songList.get(pos);
-//
-//        tvTitle.setText(song.getName());
-//        tvArtist.setText(song.getArtistName());
-//
-//        Glide.with(this)
-//                .load(song.getImage())
-//                .placeholder(R.drawable.placeholder_image)
-//                .error(R.drawable.error_image)
-//                .listener(new RequestListener<Drawable>() {
-//                    @Override
-//                    public boolean onLoadFailed(GlideException e, Object model,
-//                                                Target<Drawable> target, boolean isFirstResource) {
-//                        e.printStackTrace();
-//                        return false; // allow error drawable to be set
-//                    }
-//                    @Override
-//                    public boolean onResourceReady(Drawable resource, Object model,
-//                                                   Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-//                        return false;
-//                    }
-//                })
-//                .into(imgAlbum);
-//
-//
-//        //Glide.with(this).load(song.getAlbumImage()).into(imgAlbum);
-//
-//        if (mediaPlayer != null) {
-//            mediaPlayer.stop();
-//            mediaPlayer.release();
-//        }
-//
-//        mediaPlayer = new MediaPlayer();
-//
-//        // Lấy URL và kiểm tra điều kiện
-//        String url = song.getAudioUrl();
-//        android.util.Log.d("PlayActivity", "Audio URL: " + url);
-//        if (url == null || url.isEmpty()) {
-//            android.widget.Toast.makeText(this, "Link bài hát không hợp lệ", android.widget.Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        try {
-//            mediaPlayer.setDataSource(url);
-//            mediaPlayer.prepare(); // Có thể gây crash nếu URL không hợp lệ
-//
-//            // Lấy thời gian bài hát từ mediaPlayer (ms)
-//            int duration = mediaPlayer.getDuration();
-//
-//            if (duration <= 0) {
-//                totalTime.setText("00:00");
-//            } else {
-//                int minutes = (duration / 1000) / 60;
-//                int seconds = (duration / 1000) % 60;
-//                String timeFormatted = String.format("%02d:%02d", minutes, seconds);
-//                totalTime.setText(timeFormatted);
-//            }
-//            mediaPlayer.start();
-//            btnPlay.setImageResource(R.drawable.pause_icon);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            android.widget.Toast.makeText(this, "Không thể phát bài hát", android.widget.Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        seekBar.setMax(mediaPlayer.getDuration());
-//
-//        updateSeekBar = new Thread(() -> {
-//            while (mediaPlayer != null && mediaPlayer.isPlaying()) {
-//                seekBar.setProgress(mediaPlayer.getCurrentPosition());
-//                try {
-//                    Thread.sleep(500);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//        updateSeekBar.start();
-//    }
-//
-//
-//    @Override
-//    protected void onDestroy() {
-//        if (mediaPlayer != null) mediaPlayer.release();
-//        super.onDestroy();
-//    }
 
+        if (updateSeekBar != null && updateSeekBar.isAlive()) {
+            updateSeekBar.interrupt();
+        }
+        if (handler != null && updateRunnable != null) {
+            handler.removeCallbacks(updateRunnable);
+        }
+
+
+    }
+
+
+}
