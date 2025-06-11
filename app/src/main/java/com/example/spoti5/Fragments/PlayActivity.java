@@ -1,12 +1,17 @@
 package com.example.spoti5.Fragments;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -21,7 +26,7 @@ import java.util.ArrayList;
 
 public class PlayActivity extends AppCompatActivity {
 
-    ImageView imgAlbum;
+    ImageView imgAlbum, btnBack;
     TextView tvTitle, tvArtist, totalTime;
     SeekBar seekBar;
     ImageButton btnPlay, btnNext, btnPrev;
@@ -29,6 +34,9 @@ public class PlayActivity extends AppCompatActivity {
     static MediaPlayer mediaPlayer;
     static ArrayList<SongModel> songList;
     static int position = 0;
+    private float x1, x2;
+    private static final int MIN_DISTANCE = 150;
+
 
     Thread updateSeekBar;
 
@@ -36,7 +44,7 @@ public class PlayActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_play);
+        setContentView(R.layout.fragment_play);
 
         imgAlbum = findViewById(R.id.albumImage);
         tvTitle = findViewById(R.id.songTitle);
@@ -46,12 +54,17 @@ public class PlayActivity extends AppCompatActivity {
         btnNext = findViewById(R.id.btnNext);
         btnPrev = findViewById(R.id.btnPrevious);
         totalTime = findViewById(R.id.totalTime);
+        btnBack = findViewById(R.id.btnBack);
 
         // Lấy dữ liệu từ Intent
         position = getIntent().getIntExtra("position", 0);
         songList = (ArrayList<SongModel>) getIntent().getSerializableExtra("songList");
 
         playSong(position);
+
+        btnBack.setOnClickListener(v -> {
+            finish();
+        });
 
         btnPlay.setOnClickListener(v -> {
             if (mediaPlayer.isPlaying()) {
@@ -112,9 +125,14 @@ public class PlayActivity extends AppCompatActivity {
         //Glide.with(this).load(song.getAlbumImage()).into(imgAlbum);
 
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
+            try {
+                mediaPlayer.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mediaPlayer = null;
         }
+
 
         mediaPlayer = new MediaPlayer();
 
@@ -123,7 +141,7 @@ public class PlayActivity extends AppCompatActivity {
         android.util.Log.d("PlayActivity", "Audio URL: " + url);
 
         if (url == null || url.isEmpty()) {
-            android.widget.Toast.makeText(this, "Link bài hát không hợp lệ", android.widget.Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Link bài hát không hợp lệ", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -153,15 +171,23 @@ public class PlayActivity extends AppCompatActivity {
         seekBar.setMax(mediaPlayer.getDuration());
 
         updateSeekBar = new Thread(() -> {
-            while (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                seekBar.setProgress(mediaPlayer.getCurrentPosition());
-                try {
+            try {
+                while (mediaPlayer != null) {
+                    try {
+                        if (mediaPlayer.isPlaying()) {
+                            seekBar.setProgress(mediaPlayer.getCurrentPosition());
+                        }
+                    } catch (IllegalStateException e) {
+                        e.printStackTrace(); // MediaPlayer không ở trạng thái hợp lệ
+                        break; // Thoát khỏi vòng lặp để tránh crash
+                    }
                     Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
+
         updateSeekBar.start();
     }
 
@@ -171,5 +197,29 @@ public class PlayActivity extends AppCompatActivity {
         if (mediaPlayer != null) mediaPlayer.release();
         super.onDestroy();
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                x1 = event.getX();
+                break;
+            case MotionEvent.ACTION_UP:
+                x2 = event.getX();
+                float deltaX = x2 - x1;
+                if (Math.abs(deltaX) > MIN_DISTANCE) {
+                    if (deltaX < 0) {
+                        // Vuốt trái → mở LyricsActivity
+                        Intent intent = new Intent(PlayActivity.this, LyricsActivity.class);
+                        intent.putExtra("song", songList.get(position)); // hoặc truyền lyrics
+                        startActivity(intent);
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                    }
+                }
+                break;
+        }
+        return super.onTouchEvent(event);
+    }
+
 
 }

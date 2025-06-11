@@ -1,39 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/search_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
+    android:padding="12dp"
     tools:context=".Fragments.HomeFragment2">
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
+    <!-- Thanh tìm kiếm -->
+    <EditText
+        android:id="@+id/search_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/teal_700"
-        app:tabIndicatorFullWidth="true"
-        app:tabIndicatorGravity="center"
-        app:tabTextColor="@color/black"
-        app:tabIndicatorHeight="40dp"
-        app:tabIndicatorColor="@color/teal_200"
-        app:tabBackground="@drawable/tab_indicator"
-        />
+        android:hint="🔍 Tìm bài hát, nghệ sĩ..."
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:background="@drawable/search_input_bg"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="8dp"
+        android:inputType="text" />
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
+    <!-- Khoảng cách nhỏ -->
+    <View
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="8dp" />
 
+    <!-- Danh sách kết quả -->
+    <ListView
+        android:id="@+id/search_results"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        android:scrollbars="vertical" />
 
-
-    </androidx.viewpager2.widget.ViewPager2>
+    <!-- Thông báo không tìm thấy -->
     <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
+        android:id="@+id/tv_no_result"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="HomePage2"
-        android:layout_below="@+id/tabLayout"
-        android:textSize="30dp"
-        android:textColor="@color/white" />
-</RelativeLayout>
+        android:text="Không tìm thấy bài hát nào"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:visibility="gone"
+        android:paddingTop="12dp"/>
+
+</LinearLayout>

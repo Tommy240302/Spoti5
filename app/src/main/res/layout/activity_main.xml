@@ -6,9 +6,10 @@
     android:theme="@style/Theme.Spoti5"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="40dp"
-    android:background="@color/black"
-    tools:context=".Activities.MainActivity">
+    android:layout_marginTop="0dp"
+    android:background="@color/primary"
+    tools:context=".Activities.MainActivity"
+    >
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"

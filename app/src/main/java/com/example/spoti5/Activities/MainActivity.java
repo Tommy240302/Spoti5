@@ -9,12 +9,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.spoti5.Adapters.ViewpagerAdapter;
 import com.example.spoti5.Fragments.HomeFragment;
 import com.example.spoti5.Fragments.HomeFragment2;
 import com.example.spoti5.R;
+import com.example.spoti5.Utils.SyncWorker;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private ViewPager2 mViewPager;
@@ -99,5 +105,16 @@ public class MainActivity extends AppCompatActivity {
 //        if (getSupportActionBar() != null) {
 //            getSupportActionBar().setTitle("Trang chủ");
 //        }
+        PeriodicWorkRequest syncRequest =
+                new PeriodicWorkRequest.Builder(SyncWorker.class, 12, TimeUnit.HOURS)
+                        .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "SyncSongsWork",
+                ExistingPeriodicWorkPolicy.KEEP, // giữ lịch cũ nếu đã tồn tại
+                syncRequest
+        );
+
     }
+
 }

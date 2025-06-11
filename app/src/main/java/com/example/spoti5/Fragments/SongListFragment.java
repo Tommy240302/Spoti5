@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import androidx.fragment.app.Fragment;
@@ -60,7 +61,7 @@ public class SongListFragment extends Fragment {
 
         fetchSongs(albumId);
 
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
+        ImageView btnBack = view.findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> {
             // Quay lại fragment trước đó
             requireActivity().getSupportFragmentManager().popBackStack();
