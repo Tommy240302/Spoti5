@@ -2,6 +2,7 @@ package com.example.spoti5.Fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +73,7 @@ public class SongListFragment extends Fragment {
         });
         lvSongs.setOnItemClickListener((parent, v, position, id) -> {
             SongModel selectedSong = songList.get(position);
-
+            System.out.println("Bài hát được chọn: " + selectedSong);
             Intent intent = new Intent(requireContext(), PlayActivity.class);
 
             // Truyền vị trí bài hát hiện tại
@@ -80,6 +81,8 @@ public class SongListFragment extends Fragment {
 
             // Truyền danh sách bài hát (bạn cần đảm bảo SongModel implements Serializable)
             intent.putExtra("songList", new ArrayList<>(songList));
+
+            Log.d("PlayIntent", "Opening PlayActivity with song: " + selectedSong.getName());
 
             requireContext().startActivity(intent);
         });

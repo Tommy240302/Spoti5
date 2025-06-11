@@ -1,5 +1,7 @@
 package com.example.spoti5.Fragments;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -8,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
+import android.widget.ImageView;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -30,6 +33,7 @@ public class HomeFragment extends Fragment {
     private List<AlbumModel> listAlbum;
     private CollectionAdapter adapter;
     private RequestQueue requestQueue;
+    private ImageView avatar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,9 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        avatar = view.findViewById(R.id.avatar);
+        avatar.setImageResource(R.drawable.user);
 
         gvCollectionSongs = view.findViewById(R.id.gvCollectionSongs);
 
@@ -74,6 +81,19 @@ public class HomeFragment extends Fragment {
 
         return view;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Đảm bảo layout chính được hiển thị trở lại
+        View view = getView();
+        if (view != null) {
+            view.findViewById(R.id.home_main_layout).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.home_inner_container).setVisibility(View.GONE);
+        }
+    }
+
 
     private void fecthAlbum() {
         requestQueue = Volley.newRequestQueue(getContext());
