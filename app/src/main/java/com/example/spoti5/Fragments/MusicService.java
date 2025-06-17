@@ -64,6 +64,13 @@ public class MusicService extends Service {
         }
     }
 
+    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+        if (mediaPlayer != null) {
+            mediaPlayer.setOnCompletionListener(listener);
+        }
+    }
+
+
     public boolean isPlaying() {
         return mediaPlayer != null && mediaPlayer.isPlaying();
     }

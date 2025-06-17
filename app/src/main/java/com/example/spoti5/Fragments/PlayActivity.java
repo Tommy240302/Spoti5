@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -23,12 +24,17 @@ import com.example.spoti5.R;
 import com.example.spoti5.Models.SongModel;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class PlayActivity extends AppCompatActivity {
 
     private ImageView imgAlbum;
     private TextView tvTitle, tvArtist, totalTime, currentTime;
     private ImageView btnPlay, btnNext, btnPrev, btnBack;
+    private ImageView btnShuffle, btnRepeat;
+    private boolean isShuffle = false;
+    private boolean isRepeat = false;
+
     private SeekBar seekBar;
     private MusicService musicService;
     private boolean isBound = false;
@@ -60,6 +66,24 @@ public class PlayActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         totalTime = findViewById(R.id.totalTime);
         currentTime = findViewById(R.id.currentTime);
+
+        btnShuffle = findViewById(R.id.btnShuffle);
+        btnRepeat = findViewById(R.id.btnRepeat);
+
+        //nút phát trộn bài
+        btnShuffle.setOnClickListener(v -> {
+            isShuffle = !isShuffle;
+            Toast.makeText(this, isShuffle ? "Bật phát ngẫu nhiên" : "Tắt phát ngẫu nhiên", Toast.LENGTH_SHORT).show();
+            btnShuffle.setImageResource(isShuffle ? R.drawable.shuffle_icon_on : R.drawable.icon_suffle); // icon sáng khi bật
+        });
+
+        //nút phát lặp bài
+        btnRepeat.setOnClickListener(v -> {
+            isRepeat = !isRepeat;
+            Toast.makeText(this, isRepeat ? "Bật lặp lại" : "Tắt lặp lại", Toast.LENGTH_SHORT).show();
+            btnRepeat.setImageResource(isRepeat ? R.drawable.repeat_icon_on : R.drawable.icon_repeat); // icon sáng khi bật
+        });
+
 
         position = getIntent().getIntExtra("position", 0);
         songList = (ArrayList<SongModel>) getIntent().getSerializableExtra("songList");
@@ -95,13 +119,23 @@ public class PlayActivity extends AppCompatActivity {
         });
 
         btnNext.setOnClickListener(v -> {
-            position = (position + 1) % songList.size();
+            if (isShuffle) {
+                position = new Random().nextInt(songList.size());
+            } else {
+                position = (position + 1) % songList.size();
+            }
             playSong(position);
         });
+
         btnPrev.setOnClickListener(v -> {
-            position = (position - 1 + songList.size()) % songList.size();
+            if (isShuffle) {
+                position = new Random().nextInt(songList.size());
+            } else {
+                position = (position - 1 + songList.size()) % songList.size();
+            }
             playSong(position);
         });
+
         btnBack.setOnClickListener(v -> {
             finish();
             overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
@@ -154,17 +188,33 @@ public class PlayActivity extends AppCompatActivity {
                 startSeekBarUpdate();
                 btnPlay.setImageResource(R.drawable.pause_icon);
                 MainActivity.currentSong = song;
+
+                // ✅ Xử lý khi phát xong bài hát
+                musicService.setOnCompletionListener(completedMp -> {
+                    if (isRepeat) {
+                        playSong(position); // lặp lại
+                    } else {
+                        if (isShuffle) {
+                            position = new Random().nextInt(songList.size());
+                        } else {
+                            position = (position + 1) % songList.size();
+                        }
+                        playSong(position);
+                    }
+
+                });
+
+                // Gửi broadcast cập nhật MiniPlayer
                 Intent intent = new Intent("UPDATE_MINI_PLAYER");
                 intent.putExtra("title", song.getName());
                 intent.putExtra("artist", song.getArtistName());
                 intent.putExtra("imageUrl", song.getImage());
-                intent.putExtra("song", song); // rất quan trọng để MainActivity nhận đúng
-
+                intent.putExtra("song", song);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
                 Log.d("MiniPlayer", "Broadcast đã gửi: " + song.getName() + " - " + song.getArtistName() + " - " + song.getImage());
-
             });
+
         }
 
 

@@ -202,6 +202,24 @@ public class SettingsFragment extends Fragment {
                                 // TODO: mở player phát nhạc
                             });
 
+                            songView.setOnLongClickListener(sv -> {
+                                new AlertDialog.Builder(getContext())
+                                        .setTitle("Xóa bài hát")
+                                        .setMessage("Bạn có muốn xóa \"" + song.getName() + "\" khỏi danh sách phát này không?")
+                                        .setPositiveButton("Xóa", (dialog, which) -> {
+                                            int rows = songDAO.removeSongFromPlaylist(song.getId(), list.getListId());
+                                            if (rows > 0) {
+                                                Toast.makeText(getContext(), "Đã xóa bài hát", Toast.LENGTH_SHORT).show();
+                                                loadPlaylists(); // reload danh sách
+                                            } else {
+                                                Toast.makeText(getContext(), "Xóa thất bại", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }) 
+                                        .setNegativeButton("Hủy", null)
+                                        .show();
+                                return true;
+                            });
+
                             songListLayout.addView(songView);
                         }
                     }

@@ -86,6 +86,14 @@
         android:orientation="horizontal">
 
         <ImageButton
+            android:id="@+id/btnShuffle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/icon_suffle"
+            android:contentDescription="Shuffle" />
+
+        <ImageButton
             android:id="@+id/btnPrevious"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -113,8 +121,15 @@
             android:contentDescription="Next"
             app:tint="@null" />
 
-
+        <ImageButton
+            android:id="@+id/btnRepeat"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/icon_repeat"
+            android:contentDescription="Repeat" />
     </LinearLayout>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
