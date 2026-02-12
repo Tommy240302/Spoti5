@@ -21,7 +21,7 @@ Spoti5 là ứng dụng nghe nhạc trên mobile lấy cảm hứng từ Spotify
 
 **Frontend (Mobile):**
 - Kotlin
-- Axios
+- Activity, Fragment, 
 
 **Backend:**
 - Kotlin
